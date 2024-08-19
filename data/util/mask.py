@@ -32,95 +32,114 @@ def random_cropping_bbox(img_shape=(256,256), mask_mode='onedirection'):
             left = np.random.randint(0, w-width)
     return (top, left, height, width)
 
-def random_bbox(img_shape=(256,256), max_bbox_shape=(128, 128), max_bbox_delta=40, min_margin=20):
-    """Generate a random bbox for the mask on a given image.
+# def random_bbox(img_shape=(256,256), max_bbox_shape=(128, 128), max_bbox_delta=40, min_margin=20):
+#     """Generate a random bbox for the mask on a given image.
 
-    In our implementation, the max value cannot be obtained since we use
-    `np.random.randint`. And this may be different with other standard scripts
-    in the community.
+#     In our implementation, the max value cannot be obtained since we use
+#     `np.random.randint`. And this may be different with other standard scripts
+#     in the community.
 
-    Args:
-        img_shape (tuple[int]): The size of a image, in the form of (h, w).
-        max_bbox_shape (int | tuple[int]): Maximum shape of the mask box,
-            in the form of (h, w). If it is an integer, the mask box will be
-            square.
-        max_bbox_delta (int | tuple[int]): Maximum delta of the mask box,
-            in the form of (delta_h, delta_w). If it is an integer, delta_h
-            and delta_w will be the same. Mask shape will be randomly sampled
-            from the range of `max_bbox_shape - max_bbox_delta` and
-            `max_bbox_shape`. Default: (40, 40).
-        min_margin (int | tuple[int]): The minimum margin size from the
-            edges of mask box to the image boarder, in the form of
-            (margin_h, margin_w). If it is an integer, margin_h and margin_w
-            will be the same. Default: (20, 20).
+#     Args:
+#         img_shape (tuple[int]): The size of a image, in the form of (h, w).
+#         max_bbox_shape (int | tuple[int]): Maximum shape of the mask box,
+#             in the form of (h, w). If it is an integer, the mask box will be
+#             square.
+#         max_bbox_delta (int | tuple[int]): Maximum delta of the mask box,
+#             in the form of (delta_h, delta_w). If it is an integer, delta_h
+#             and delta_w will be the same. Mask shape will be randomly sampled
+#             from the range of `max_bbox_shape - max_bbox_delta` and
+#             `max_bbox_shape`. Default: (40, 40).
+#         min_margin (int | tuple[int]): The minimum margin size from the
+#             edges of mask box to the image boarder, in the form of
+#             (margin_h, margin_w). If it is an integer, margin_h and margin_w
+#             will be the same. Default: (20, 20).
 
-    Returns:
-        tuple[int]: The generated box, (top, left, h, w).
-    """
-    if not isinstance(max_bbox_shape, tuple):
-        max_bbox_shape = (max_bbox_shape, max_bbox_shape)
-    if not isinstance(max_bbox_delta, tuple):
-        max_bbox_delta = (max_bbox_delta, max_bbox_delta)
-    if not isinstance(min_margin, tuple):
-        min_margin = (min_margin, min_margin)
+#     Returns:
+#         tuple[int]: The generated box, (top, left, h, w).
+#     """
+#     if not isinstance(max_bbox_shape, tuple):
+#         max_bbox_shape = (max_bbox_shape, max_bbox_shape)
+#     if not isinstance(max_bbox_delta, tuple):
+#         max_bbox_delta = (max_bbox_delta, max_bbox_delta)
+#     if not isinstance(min_margin, tuple):
+#         min_margin = (min_margin, min_margin)
         
-    img_h, img_w = img_shape[:2]
-    max_mask_h, max_mask_w = max_bbox_shape
-    max_delta_h, max_delta_w = max_bbox_delta
-    margin_h, margin_w = min_margin
+#     img_h, img_w = img_shape[:2]
+#     max_mask_h, max_mask_w = max_bbox_shape
+#     max_delta_h, max_delta_w = max_bbox_delta
+#     margin_h, margin_w = min_margin
 
-    if max_mask_h > img_h or max_mask_w > img_w:
-        raise ValueError(f'mask shape {max_bbox_shape} should be smaller than '
-                         f'image shape {img_shape}')
-    if (max_delta_h // 2 * 2 >= max_mask_h
-            or max_delta_w // 2 * 2 >= max_mask_w):
-        raise ValueError(f'mask delta {max_bbox_delta} should be smaller than'
-                         f'mask shape {max_bbox_shape}')
-    if img_h - max_mask_h < 2 * margin_h or img_w - max_mask_w < 2 * margin_w:
-        raise ValueError(f'Margin {min_margin} cannot be satisfied for img'
-                         f'shape {img_shape} and mask shape {max_bbox_shape}')
+#     if max_mask_h > img_h or max_mask_w > img_w:
+#         raise ValueError(f'mask shape {max_bbox_shape} should be smaller than '
+#                          f'image shape {img_shape}')
+#     if (max_delta_h // 2 * 2 >= max_mask_h
+#             or max_delta_w // 2 * 2 >= max_mask_w):
+#         raise ValueError(f'mask delta {max_bbox_delta} should be smaller than'
+#                          f'mask shape {max_bbox_shape}')
+#     if img_h - max_mask_h < 2 * margin_h or img_w - max_mask_w < 2 * margin_w:
+#         raise ValueError(f'Margin {min_margin} cannot be satisfied for img'
+#                          f'shape {img_shape} and mask shape {max_bbox_shape}')
 
-    # get the max value of (top, left)
-    max_top = img_h - margin_h - max_mask_h
-    max_left = img_w - margin_w - max_mask_w
-    # randomly select a (top, left)
-    top = np.random.randint(margin_h, max_top)
-    left = np.random.randint(margin_w, max_left)
-    # randomly shrink the shape of mask box according to `max_bbox_delta`
-    # the center of box is fixed
-    delta_top = np.random.randint(0, max_delta_h // 2 + 1)
-    delta_left = np.random.randint(0, max_delta_w // 2 + 1)
-    top = top + delta_top
-    left = left + delta_left
-    h = max_mask_h - delta_top
-    w = max_mask_w - delta_left
-    return (top, left, h, w)
+#     # get the max value of (top, left)
+#     max_top = img_h - margin_h - max_mask_h
+#     max_left = img_w - margin_w - max_mask_w
+#     # randomly select a (top, left)
+#     top = np.random.randint(margin_h, max_top)
+#     left = np.random.randint(margin_w, max_left)
+#     # randomly shrink the shape of mask box according to `max_bbox_delta`
+#     # the center of box is fixed
+#     delta_top = np.random.randint(0, max_delta_h // 2 + 1)
+#     delta_left = np.random.randint(0, max_delta_w // 2 + 1)
+#     top = top + delta_top
+#     left = left + delta_left
+#     h = max_mask_h - delta_top
+#     w = max_mask_w - delta_left
+#     return (top, left, h, w)
 
 
+# def bbox2mask(img_shape, bbox, dtype='uint8'):
+#     """Generate mask in ndarray from bbox.
+
+#     The returned mask has the shape of (h, w, 1). '1' indicates the
+#     hole and '0' indicates the valid regions.
+
+#     We prefer to use `uint8` as the data type of masks, which may be different
+#     from other codes in the community.
+
+#     Args:
+#         img_shape (tuple[int]): The size of the image.
+#         bbox (tuple[int]): Configuration tuple, (top, left, height, width)
+#         dtype (str): Indicate the data type of returned masks. Default: 'uint8'
+
+#     Return:
+#         numpy.ndarray: Mask in the shape of (h, w, 1).
+#     """
+
+#     height, width = img_shape[:2]
+
+#     mask = np.zeros((height, width, 1), dtype=dtype)
+#     mask[bbox[0]:bbox[0] + bbox[2], bbox[1]:bbox[1] + bbox[3], :] = 1
+
+#     return mask
+
+def random_bbox(imgsize=256, masksize=128):
+    masksize = np.random.randint(low= masksize - (masksize * 0.1), high= masksize + (masksize * 0.3))
+    maxr = imgsize - masksize
+    t = int(np.random.uniform(size = [], low=0, high=maxr).tolist())
+    l = int(np.random.uniform(size = [], low=0, high=maxr).tolist())
+    h = int(masksize)
+    w = int(masksize)
+    return (t, l, h, w)
+    
 def bbox2mask(img_shape, bbox, dtype='uint8'):
-    """Generate mask in ndarray from bbox.
-
-    The returned mask has the shape of (h, w, 1). '1' indicates the
-    hole and '0' indicates the valid regions.
-
-    We prefer to use `uint8` as the data type of masks, which may be different
-    from other codes in the community.
-
-    Args:
-        img_shape (tuple[int]): The size of the image.
-        bbox (tuple[int]): Configuration tuple, (top, left, height, width)
-        dtype (str): Indicate the data type of returned masks. Default: 'uint8'
-
-    Return:
-        numpy.ndarray: Mask in the shape of (h, w, 1).
-    """
-
-    height, width = img_shape[:2]
-
-    mask = np.zeros((height, width, 1), dtype=dtype)
-    mask[bbox[0]:bbox[0] + bbox[2], bbox[1]:bbox[1] + bbox[3], :] = 1
-
-    return mask
+    imgsize = img_shape[0]
+    mask = np.zeros((imgsize, imgsize, 1), dtype=dtype)
+    delta = 15
+    h = np.random.randint(delta)
+    w = np.random.randint(delta)
+    mask[bbox[0]+h:bbox[0]+bbox[2]-h,          
+            bbox[1]+w:bbox[1]+bbox[3]-w, :] = 1
+    return torch.from_numpy(mask)
 
 
 def brush_stroke_mask(img_shape,
