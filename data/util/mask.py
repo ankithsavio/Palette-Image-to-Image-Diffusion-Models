@@ -139,7 +139,7 @@ def bbox2mask(img_shape, bbox, dtype='uint8'):
     w = np.random.randint(delta)
     mask[bbox[0]+h:bbox[0]+bbox[2]-h,          
             bbox[1]+w:bbox[1]+bbox[3]-w, :] = 1
-    return torch.from_numpy(mask)
+    return mask
 
 
 def brush_stroke_mask(img_shape,
