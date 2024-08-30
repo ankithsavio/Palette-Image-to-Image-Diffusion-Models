@@ -143,9 +143,9 @@ class UncroppingDataset(data.Dataset):
 
 
 class ColorizationDataset(data.Dataset):
-    def __init__(self, data_root, data_flist, data_len=-1, image_size=[224, 224], loader=pil_loader):
+    def __init__(self, data_root, data_flist, data_len=-1, image_size=[256, 256], loader=pil_loader):
         self.data_root = data_root
-        flist = make_dataset(data_flist)
+        flist = make_dataset(data_root)
         if data_len > 0:
             self.flist = flist[:int(data_len)]
         else:
@@ -155,15 +155,59 @@ class ColorizationDataset(data.Dataset):
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5,0.5, 0.5])
         ])
+        self.ctfs = transforms.Compose([
+                transforms.Resize((image_size[0], image_size[1])),
+                transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5], std=[0.5])
+        ])
         self.loader = loader
         self.image_size = image_size
 
     def __getitem__(self, index):
         ret = {}
-        file_name = str(self.flist[index]).zfill(5) + '.png'
+        file_name = self.flist[index]
 
-        img = self.tfs(self.loader('{}/{}/{}'.format(self.data_root, 'color', file_name)))
-        cond_image = self.tfs(self.loader('{}/{}/{}'.format(self.data_root, 'gray', file_name)))
+        img = self.tfs(self.loader(file_name))
+        cond_image = self.ctfs(self.loader(file_name))
+
+        ret['gt_image'] = img
+        ret['cond_image'] = cond_image
+        ret['path'] = file_name
+        return ret
+
+    def __len__(self):
+        return len(self.flist)
+    
+
+class SuperResolutionDataset(data.Dataset):
+    def __init__(self, data_root, data_flist, data_len=-1, image_size=[256, 256], loader=pil_loader):
+        self.data_root = data_root
+        flist = make_dataset(data_root)
+        if data_len > 0:
+            self.flist = flist[:int(data_len)]
+        else:
+            self.flist = flist
+        self.tfs = transforms.Compose([
+                transforms.Resize((image_size[0], image_size[1])),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5,0.5, 0.5])
+        ])
+        self.ctfs = transforms.Compose([
+                transforms.Resize((64, 64)),  # Resize the image to 64x64
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ])
+
+        self.loader = loader
+        self.image_size = image_size
+
+    def __getitem__(self, index):
+        ret = {}
+        file_name = self.flist[index]
+
+        img = self.tfs(self.loader(file_name))
+        cond_image = self.ctfs(self.loader(file_name))
 
         ret['gt_image'] = img
         ret['cond_image'] = cond_image
