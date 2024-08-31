@@ -207,7 +207,7 @@ class SuperResolutionDataset(data.Dataset):
         file_name = self.flist[index]
 
         img = self.tfs(self.loader(file_name))
-        cond_image = self.tfs(self.ctfs(self.loader(file_name)))
+        cond_image = self.tfs(self.ctfs(self.loader(file_name)).numpy())
 
         ret['gt_image'] = img
         ret['cond_image'] = cond_image
